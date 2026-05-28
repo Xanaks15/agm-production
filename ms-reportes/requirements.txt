@@ -1,0 +1,17 @@
+fastapi[standard]
+uvicorn[standard]
+pydantic-settings
+SQLAlchemy[asyncio]
+asyncpg
+alembic
+grpcio
+grpcio-tools
+protobuf
+gunicorn
+openpyxl
+reportlab
+
+# RabbitMQ / Messaging Dependencies
+aio-pika==9.4.1
+tenacity==8.2.3
+orjson==3.10.3

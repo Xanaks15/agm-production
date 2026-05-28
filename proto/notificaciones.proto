@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package agm.notificaciones.v1;
+
+service NotificacionService {
+  // El MS-3 llamará a esto tras importar un alumno del PDF
+  rpc SendBienvenida(BienvenidaRequest) returns (NotifResponse);
+  
+  // Dispara el correo al docente cuando un alumno se da de baja
+  rpc SendBajaNotif(BajaNotifRequest) returns (NotifResponse);
+  
+  // Dispara el correo masivo cuando se cierran las actas de una materia
+  rpc SendCierreMateria(CierreMateriaRequest) returns (NotifResponse);
+
+  // Dispara correo de recuperación de contraseña desde ms-auth
+  rpc SendResetPassword(ResetPasswordRequest) returns (NotifResponse);
+}
+
+message BienvenidaRequest {
+  string alumno_id = 1;
+  string materia_id = 2;
+  string password_temporal = 3;
+}
+
+message BajaNotifRequest {
+  string alumno_id = 1;
+  string docente_id = 2;
+  string materia_id = 3;
+}
+
+message CierreMateriaRequest {
+  string materia_id = 1;
+}
+
+message ResetPasswordRequest {
+  string usuario_id = 1;
+  string email = 2;
+  string reset_token = 3;
+}
+
+message NotifResponse { 
+  bool success = 1; 
+  string message = 2; // Añadido para mandar detalle del error si ocurre
+}

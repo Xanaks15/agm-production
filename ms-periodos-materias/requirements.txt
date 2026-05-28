@@ -1,0 +1,24 @@
+fastapi
+uvicorn[standard]
+
+sqlalchemy
+asyncpg
+alembic
+
+pydantic
+pydantic-settings
+python-dotenv
+
+pytest
+pytest-asyncio
+httpx
+
+pdfplumber
+python-multipart
+
+grpcio
+grpcio-tools
+# RabbitMQ / Messaging Dependencies
+aio-pika==9.4.1
+tenacity==8.2.3
+orjson==3.10.3

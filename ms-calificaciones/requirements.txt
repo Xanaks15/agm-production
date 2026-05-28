@@ -1,0 +1,23 @@
+fastapi[standard]
+uvicorn[standard]
+pydantic-settings
+python-dotenv
+
+SQLAlchemy
+psycopg2-binary
+alembic
+
+grpcio==1.68.1
+grpcio-tools==1.68.1
+protobuf==5.29.1
+
+pandas
+openpyxl
+python-multipart
+
+pytest
+httpx
+# RabbitMQ / Messaging Dependencies
+aio-pika==9.4.1
+tenacity==8.2.3
+orjson==3.10.3

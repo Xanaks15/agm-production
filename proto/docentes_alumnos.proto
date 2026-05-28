@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package agm.docentes_alumnos.v1;
+
+service DocentesAlumnosService {
+  // Para que MS-4 y MS-5 obtengan la lista de alumnos de un grupo
+  rpc GetAlumnosByMateria(GetAlumnosRequest) returns (AlumnosResponse);
+  
+  // Para validar si un alumno pertenece a una materia específica
+  rpc IsAlumnoEnMateria(RelationRequest) returns (BoolResponse);
+
+  // Obtener las materias en las que está inscrito un alumno (Para historiales)
+  rpc GetMateriasByAlumno(AlumnoIdRequest) returns (MateriasAlumnoResponse);
+  
+  // Obtener perfil detallado
+  rpc GetAlumnoById(AlumnoIdRequest) returns (AlumnoProfile);
+  rpc GetDocenteById(DocenteIdRequest) returns (DocenteProfile);
+
+  // Para que MS-2 resuelva el docente_id al importar PDFs de programación
+  rpc GetDocenteByNombre(DocenteNombreRequest) returns (DocenteProfile);
+  rpc GetDocenteByEmail(EmailRequest) returns (DocenteProfile);
+  rpc GetAlumnoByEmail(EmailRequest) returns (AlumnoProfile);
+}
+
+message GetAlumnosRequest { string materia_id = 1; }
+message AlumnoIdRequest { string alumno_id = 1; }
+message DocenteIdRequest { string docente_id = 1; }
+message RelationRequest { 
+  string alumno_id = 1; 
+  string materia_id = 2; 
+}
+message DocenteNombreRequest { string nombre_completo = 1; }
+message EmailRequest { string email = 1; }
+
+message BoolResponse { bool exists = 1; }
+
+message AlumnoProfile {
+  string alumno_id = 1;
+  string nombre_completo = 2;
+  string matricula = 3;
+  string correo = 4;
+}
+
+message AlumnosResponse {
+  repeated AlumnoProfile alumnos = 1;
+}
+
+message MateriasAlumnoResponse {
+  repeated string materias_ids = 1;
+}
+
+message DocenteProfile {
+  string docente_id = 1;
+  string nombre_completo = 2;
+  string correo = 3;
+  bool encontrado = 4;
+}

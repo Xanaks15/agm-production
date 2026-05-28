@@ -1,0 +1,25 @@
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.4
+pydantic-settings==2.7.1
+python-dotenv==1.0.1
+pytest==8.3.4
+httpx==0.27.2
+
+SQLAlchemy==2.0.25
+greenlet==3.0.3 --only-binary=:all:
+psycopg2-binary==2.9.9
+alembic==1.13.1
+
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
+python-jose[cryptography]==3.3.0
+
+grpcio==1.68.1
+grpcio-tools==1.68.1
+
+PyJWT
+# RabbitMQ / Messaging Dependencies
+aio-pika==9.4.1
+tenacity==8.2.3
+orjson==3.10.3

@@ -1,0 +1,21 @@
+# Entornos virtuales y caché de Python
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Archivos de entorno
+.env
+
+# Base de datos SQLite local (para pruebas)
+test.db
+
+# Ignorar código autogenerado por gRPC
+app/grpc/generated/*
+!app/grpc/generated/__init__.py
+!app/grpc/generated/auth_pb2.py
+!app/grpc/generated/auth_pb2_grpc.py
+!app/grpc/generated/periodos_materias_pb2.py
+!app/grpc/generated/periodos_materias_pb2_grpc.py
+!app/grpc/generated/notificaciones_pb2.py
+!app/grpc/generated/notificaciones_pb2_grpc.py

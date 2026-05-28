@@ -1,0 +1,117 @@
+import grpc
+import logging
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
+from sqlalchemy.orm import Session
+from app.db.session import get_db
+from app.models.docente import Docente
+from app.services.import_service import extraer_docentes_pdf
+from app.messaging.clients.auth_hybrid_client import auth_client
+from app.api.deps import role_required
+from app.api.v1.endpoints.docentes import _enviar_bienvenida_docente
+
+logger = logging.getLogger(__name__)
+
+router = APIRouter()
+
+@router.post("/docentes")
+async def importar_docentes_pdf(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(role_required("Administrador"))
+):
+    contenido = await file.read()
+    docentes_extraidos = extraer_docentes_pdf(contenido)
+
+    if not docentes_extraidos:
+        raise HTTPException(status_code=400, detail="No se detectaron docentes. El PDF podría tener un formato incompatible.")
+
+    creados = 0
+    omitidos_por_identidad = 0
+    errores_identidad = []
+    
+    docentes_a_notificar = []
+
+    for d in docentes_extraidos:
+        # Evitar duplicados por correo
+        existe = db.query(Docente).filter(Docente.correo == d["correo"]).first()
+        if existe:
+            continue
+
+        # Crear o reutilizar identidad en MS-1 vía gRPC.
+        # Si MS-1 falla, omitimos el docente (sin fallback local).
+        try:
+            user_id_str, temp_pass = await auth_client.create_or_get_user_identity(
+                nombre=d["nombre_completo"],
+                email=d["correo"],
+                role="Docente"
+            )
+        except grpc.RpcError as e:
+            logger.error(
+                f"[MS-3][Docente][Importación] Fallo de conexión con MS-1. "
+                f"correo={d['correo']} error={e.details()}"
+            )
+            omitidos_por_identidad += 1
+            errores_identidad.append({
+                "correo": d["correo"],
+                "nombre": d["nombre_completo"],
+                "detalle": f"MS-1 no disponible: {e.details()}"
+            })
+            continue
+
+        if not user_id_str:
+            logger.error(
+                f"[MS-3][Docente][Importación] MS-1 no devolvió user_id. "
+                f"correo={d['correo']}"
+            )
+            omitidos_por_identidad += 1
+            errores_identidad.append({
+                "correo": d["correo"],
+                "nombre": d["nombre_completo"],
+                "detalle": "MS-1 no pudo crear o reutilizar la identidad."
+            })
+            continue
+
+        nuevo = Docente(
+            user_id=user_id_str,
+            nombre_completo=d["nombre_completo"],
+            correo=d["correo"],
+            cubiculo=d["cubiculo"],
+            estatus_laboral=True
+        )
+        db.add(nuevo)
+        db.flush()
+        creados += 1
+        
+        if temp_pass:
+            docentes_a_notificar.append((str(nuevo.docente_id), d["correo"], temp_pass))
+
+    db.commit()
+
+    # Enviar notificaciones después del commit
+    notificaciones_enviadas = 0
+    notificaciones_fallidas = 0
+
+    for doc_id, email, tpass in docentes_a_notificar:
+        logger.info(f"[MS-3][Docente][Importación] Intentando enviar bienvenida_docente a {email}")
+        try:
+            await _enviar_bienvenida_docente(
+                docente_id=doc_id,
+                password_temporal=tpass
+            )
+            notificaciones_enviadas += 1
+        except Exception as notif_err:
+            logger.warning(
+                f"[MS-3][Docente][Importación] No se pudo enviar notificación a {email}: {notif_err}"
+            )
+            notificaciones_fallidas += 1
+
+    return {
+        "status": "success",
+        "creados": creados,
+        "total_leidos": len(docentes_extraidos),
+        "omitidos_por_identidad": omitidos_por_identidad,
+        "errores_identidad": errores_identidad,
+        "notificaciones_enviadas": notificaciones_enviadas,
+        "notificaciones_fallidas": notificaciones_fallidas
+    }
+
