@@ -8,7 +8,12 @@ if [ -z "$RESOLVER" ]; then
   RESOLVER="8.8.8.8"
 fi
 
-echo "DNS resolver detectado en /etc/resolv.conf: $RESOLVER"
+# Si es una direccion IPv6 (contiene dos puntos), debe envolverse en corchetes para NGINX
+if echo "$RESOLVER" | grep -q ":"; then
+  RESOLVER="[$RESOLVER]"
+fi
+
+echo "DNS resolver detectado y formateado para NGINX: $RESOLVER"
 
 # Reemplazar el marcador en el archivo de configuracion
 sed -i "s/DNS_RESOLVER_IP/$RESOLVER/g" /etc/nginx/nginx.conf
