@@ -29,3 +29,12 @@ management puede estar publicado como `15672`. Verifica el puerto efectivo con:
 ```bash
 docker compose ps rabbitmq
 ```
+
+## Despliegue en Producción (Railway)
+
+Este proyecto está configurado para desplegarse como un ecosistema de microservicios en **Railway**. 
+
+Si deseas desplegar o levantar este proyecto desde cero en tu propia cuenta de Railway, hemos preparado un script automatizado y una guía paso a paso que inyecta todas las variables de entorno y construye los Dockerfiles correspondientes.
+
+Consulta la guía detallada aquí:
+- [Guía de Despliegue en Railway](railway-backup/README.md)
